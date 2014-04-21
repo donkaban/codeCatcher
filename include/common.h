@@ -9,12 +9,26 @@
 
 #include <iostream>
 #include <functional>
+#include <unordered_map>
 
-namespace screen
+namespace screen // todo: use real screen sizes!
 {
-	constexpr uint width()  {return 1920;};
-	constexpr uint height() {return 1080;};
+    constexpr uint width()  {return 1920;};
+    constexpr uint height() {return 1080;};
 }
+
+using icref  = const cv::Mat &;
+using strref = const std::string &;
+
+template<typename T>
+using dictionary = std::unordered_map<std::string,T>; 
+
+
+template<typename T>
+T clamp(int val, T min, T max)
+{
+    return static_cast<T>(val * max/10 + min);
+} 
 
 
 

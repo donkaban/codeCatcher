@@ -19,37 +19,60 @@ const cv::Mat camera::getFrame()
 	return frame;
 }
 
+uint window::counter = 0; 
 
-
-window::window(const std::string &tag, uint w, uint h, uint x, uint y, const gl_callback &glc) :
-	tag(tag),
+window::window(const std::string &tag, uint w, uint h) :
+	_tag(tag),
 	_width(w),
-	_height(h),
-	_posX(x),
-	_posY(y),
-	glc(glc)
+	_height(h)
 {
     cv::namedWindow(tag,cv::WINDOW_NORMAL | cv::WINDOW_OPENGL);
+    _posX = 100 + (counter%gridWidth)  * (_width + 2);
+    _posY = (counter/gridWidth)  * (_height + 30);
     refill();
+   counter++;
+
 }
-
-
 
 window::~window()
 {
-    cv::destroyWindow(tag);
+    cv::destroyWindow(_tag);
+    counter--;
 }
 
 void window::refill()
 {
-    cv::resizeWindow(tag, _width,_height);
-    cv::moveWindow(tag, _posX, _posY);
+    cv::resizeWindow(_tag, _width,_height);
+    cv::moveWindow(_tag, _posX, _posY);
 }
 	
-void window::update(const cv::Mat &im)
+cv::Mat window::update(const cv::Mat &im)
 {
-	//cv::setOpenGlContext(tag); //todoit!
-    imshow(tag, im);
-    if(glc) glc();
+    imshow(_tag, im); 
+    return im;
+}
+
+ 
+
+chain::chain(uint w, uint h) : width(w), height(h) {}
+
+chain::~chain()
+{
+    for(auto w: windows) delete w;
+}
+
+chain &chain::add(const std::string &tag)
+{
+    windows.push_back(new window(tag,width, height));
+    return *this;
+}  
+
+
+void chain::processing(const cv::Mat &im)
+{
+    if(windows.empty()) return;
+    cv::Mat cur = im;
+    for(auto w : windows)
+        cur = w->update(cur);
 }
 
